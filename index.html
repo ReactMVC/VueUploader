@@ -19,7 +19,7 @@
                 </label>
                 <div class="relative">
                     <input type="file" ref="fileInput" class="opacity-0 absolute top-0 left-0 w-full h-full"
-                        @change="uploadFile">
+                        @change="checkFileSize">
                     <div
                         class="flex items-center justify-center w-full h-12 rounded-lg bg-gray-100 hover:bg-gray-200 cursor-pointer">
                         <svg class="w-6 h-6 fill-current text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg"
@@ -82,8 +82,28 @@
                 uploadError: null,
             },
             methods: {
+                checkFileSize() {
+                    const maxSize = 8 * 1024 * 1024; // 8MB
+                    const fileSize = this.$refs.fileInput.files[0].size;
+                    if (fileSize > maxSize) {
+                        const maxSizeInMB = maxSize / 1024 / 1024;
+                        this.uploadError = `File size exceeds the maximum allowed limit of ${maxSizeInMB}MB.`;
+                        this.fileUrl = null;
+                        return;
+                    }
+                    this.uploadError = null;
+                    this.uploadFile();
+                },
                 uploadFile() {
                     this.file = this.$refs.fileInput.files[0];
+                    const allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'mp4'];
+                    const fileFormat = this.file.name.split('.').pop().toLowerCase();
+                    if (!allowedFormats.includes(fileFormat)) {
+                        this.uploadError = 'Invalid file format. Allowed formats are: ' + allowedFormats.join(', ');
+                        this.fileUrl = null;
+                        return;
+                    }
+
                     const formData = new FormData();
                     formData.append('file', this.file);
 

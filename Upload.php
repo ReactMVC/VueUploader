@@ -6,6 +6,7 @@ Project Name: Vue Uploader
 Class FileUploader
 Developer: Hossein Pira
 Email: h3dev.pira@gmail.com
+Telegram: @h3dev
 */
 
 class FileUploader
