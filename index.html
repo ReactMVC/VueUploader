@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="vue.min.js"></script>
+    <link rel="stylesheet" href="tailwind.min.css">
+    <title>Vue Uploader</title>
+</head>
+
+<body class="bg-gray-100 text-gray-900 font-sans leading-normal tracking-normal">
+    <div id="app" class="max-w-lg mx-auto my-8">
+        <div class="bg-white shadow rounded-lg px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2" for="file">
+                    Choose a file to upload:
+                </label>
+                <div class="relative">
+                    <input type="file" ref="fileInput" class="opacity-0 absolute top-0 left-0 w-full h-full"
+                        @change="uploadFile">
+                    <div
+                        class="flex items-center justify-center w-full h-12 rounded-lg bg-gray-100 hover:bg-gray-200 cursor-pointer">
+                        <svg class="w-6 h-6 fill-current text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20">
+                            <path d="M9 13V7l6 3-6 3z" />
+                        </svg>
+                        <span class="font-medium">Choose a file...</span>
+                    </div>
+                </div>
+            </div>
+            <div v-if="uploadProgress > 0" class="mb-4">
+                <div class="relative pt-1">
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
+                        <div :style="{ width: uploadProgress + '%' }"
+                            class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500">
+                        </div>
+                    </div>
+                    <div class="text-center mb-4">
+                        {{ uploadProgress }}%
+                    </div>
+                </div>
+            </div>
+            <div v-if="fileUrl" class="mb-4">
+                <div class="flex items-center justify-between">
+                    <a :href="fileUrl" download class="text-blue-500 hover:text-blue-700 font-medium">
+                        Download
+                    </a>
+                    <div class="flex justify-between">
+                        <button @click="copyLink"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded mr-2">
+                            Copy Link
+                        </button>
+                        <button @click="resetUpload"
+                            class="bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded">
+                            Upload New
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div v-if="uploadError" class="mb-4">
+                <div class="text-red-500 font-medium mb-2">
+                    {{ uploadError }}
+                </div>
+                <div class="flex justify-between">
+                    <button @click="resetUpload"
+                        class="bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                file: null,
+                fileUrl: null,
+                uploadProgress: 0,
+                uploadError: null,
+            },
+            methods: {
+                uploadFile() {
+                    this.file = this.$refs.fileInput.files[0];
+                    const formData = new FormData();
+                    formData.append('file', this.file);
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'Upload.php');
+                    xhr.upload.addEventListener('progress', (event) => {
+                        if (event.lengthComputable) {
+                            this.uploadProgress = Math.round((event.loaded / event.total) * 100);
+                        }
+                    });
+                    xhr.onreadystatechange = () => {
+                        if (xhr.readyState === XMLHttpRequest.DONE) {
+                            if (xhr.status === 200) {
+                                const response = JSON.parse(xhr.responseText);
+                                this.fileUrl = response.url;
+                                this.uploadError = null;
+                            } else if (xhr.status === 400) {
+                                const response = JSON.parse(xhr.responseText);
+                                this.uploadError = response.error;
+                                this.fileUrl = null;
+                            } else {
+                                this.uploadError = 'Error uploading file. Please try again later.';
+                                this.fileUrl = null;
+                            }
+                        }
+                    };
+                    xhr.send(formData);
+                },
+                copyLink() {
+                    navigator.clipboard.writeText(this.fileUrl).then(() => {
+                        alert('File link copied to clipboard!');
+                    }).catch((error) => {
+                        console.error('Failed to copy file link: ', error);
+                    });
+                },
+                resetUpload() {
+                    this.file = null;
+                    this.fileUrl = null;
+                    this.uploadProgress = 0;
+                    this.uploadError = null;
+                    this.$refs.fileInput.value = '';
+                },
+            },
+        });
+    </script>
+</body>
+
+</html>
