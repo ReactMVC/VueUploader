@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="vue.min.js"></script>
-    <link rel="stylesheet" href="tailwind.min.css">
+    <script src="assets/vue.min.js"></script>
+    <link rel="stylesheet" href="assets/tailwind.css">
     <title>Vue Uploader</title>
 </head>
 
@@ -83,7 +83,7 @@
             },
             methods: {
                 checkFileSize() {
-                    const maxSize = 8 * 1024 * 1024; // 8MB
+                    const maxSize = 8388608; // 8MB
                     const fileSize = this.$refs.fileInput.files[0].size;
                     if (fileSize > maxSize) {
                         const maxSizeInMB = maxSize / 1024 / 1024;
